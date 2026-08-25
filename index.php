@@ -1,10 +1,11 @@
 <?php
+declare(strict_types=1);
+
 // เปิดการแสดง Error เพื่อเช็กสาเหตุหากเกิดปัญหา
 ini_set('display_errors', '1');
 error_reporting(E_ALL);
 
 // Front Controller: ทุก URL ของระบบจะเข้ามาที่ไฟล์นี้ก่อนเสมอ
-declare(strict_types=1);
 
 // ใช้ Session ผ่าน Cookie เท่านั้น และป้องกันการนำ Session ID เดิมกลับมาใช้ซ้ำ
 ini_set('session.use_strict_mode', '1');
