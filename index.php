@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// เปิดการแสดง Error เพื่อเช็กสาเหตุหากเกิดปัญหา
+// เปิดแสดง error ชั่วคราวเพื่อตรวจหาสาเหตุหน้าจอขาว
 ini_set('display_errors', '1');
 error_reporting(E_ALL);
 
