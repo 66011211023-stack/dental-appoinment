@@ -13,43 +13,13 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
 session_name('denticare_session');
 session_start();
 
-spl_autoload_register(function (string $class): void {
-    $prefix = 'App\\';
-    if (!str_starts_with($class, $prefix)) return;
-    
-    $relativeClass = substr($class, strlen($prefix));
-    $parts = explode('\\', $relativeClass);
-    
-    // เริ่มค้นจากไดเรกทอรี app
-    $currentPath = __DIR__ . '/app';
-    
-    foreach ($parts as $index => $part) {
-        $isLast = ($index === count($parts) - 1);
-        $targetName = $isLast ? $part . '.php' : $part;
-        
-        if (!is_dir($currentPath) && !$isLast) return;
-        
-        // ดึงรายการไฟล์/โฟลเดอร์ทั้งหมดมาเทียบแบบ Case-Insensitive
-        $files = scandir($currentPath);
-        $found = false;
-        
-        if ($files !== false) {
-            foreach ($files as $file) {
-                if (strcasecmp($file, $targetName) === 0) {
-                    $currentPath .= '/' . $file;
-                    $found = true;
-                    break;
-                }
-            }
-        }
-        
-        if (!$found) return;
-    }
-    
-    if (is_file($currentPath)) {
-        require $currentPath;
-    }
-});
+// ดึงไฟล์ Core หลักเข้ามาใช้งานตรงๆ
+require_once __DIR__ . '/app/Core/Auth.php';
+require_once __DIR__ . '/app/Core/Actions.php';
+require_once __DIR__ . '/app/Core/Csrf.php';
+require_once __DIR__ . '/app/Core/Database.php';
+require_once __DIR__ . '/app/Core/Password.php';
+require_once __DIR__ . '/app/Core/View.php';
 
 use App\Core\Auth;
 use App\Core\Actions;
@@ -57,6 +27,8 @@ use App\Core\Csrf;
 use App\Core\Database;
 use App\Core\Password;
 use App\Core\View;
+
+// ...ส่วนโค้ดอื่นๆ ด้านล่างปล่อยเหมือนเดิม...
 
 // บัญชีที่ล็อกอินอยู่แล้วไม่ควรสมัครบัญชีผู้ป่วยซ้ำจาก Session เดิม
 if (Auth::check() && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'register') {
