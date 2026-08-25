@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>เจ้าหน้าที่ | DentiCare</title>
+    <link rel="stylesheet" href="../public/assets/css/browser-latest.css" />
+    <link rel="stylesheet" href="../public/assets/css/php-compat.css" />
+  </head>
+  <body>
+    <!-- Sidebar ของเจ้าหน้าที่ -->
+    <aside class="sidebar">
+      <a class="brand" href="staff.html"
+        ><span class="brand-mark">DC</span
+        ><span><b>DentiCare</b><small>Clinic Management</small></span></a
+      >
+      <nav>
+        <p class="nav-title">งานประจำวัน</p>
+        <a class="active" href="staff.html"><span>▦</span>ภาพรวมเจ้าหน้าที่</a
+        ><a href="appointments.html"><span>◷</span>อนุมัติคำขอจองคิว</a
+        ><a href="dashboard.html"><span>▤</span>ตารางรักษารายวัน</a>
+        <p class="nav-title">งานผู้ป่วย</p>
+        <a href="patients.html"><span>♙</span>ผู้ป่วยและซักประวัติ</a>
+        <p class="nav-title">คลังวัสดุ</p>
+        <a href="materials.html"><span>◇</span>รับและเบิกวัสดุ</a>
+      </nav>
+      <div class="sidebar-user">
+        <span class="avatar">จน</span>
+        <div><b>อรทัย ใจดี</b><small>เจ้าหน้าที่ทันตกรรม</small></div>
+      </div>
+      <div class="sidebar-help">
+        <span>?</span>
+        <div>
+          <b>ต้องการความช่วยเหลือ?</b><small>คู่มือการใช้งานระบบ</small>
+        </div>
+      </div>
+    </aside>
+    <main class="workspace">
+      <header class="topbar">
+        <div class="topbar-title">
+          <div>
+            <span class="eyebrow">ระบบจัดการคลินิกทันตกรรม</span>
+            <h1>ภาพรวมเจ้าหน้าที่</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <label class="search-box"
+            ><span>⌕</span><input placeholder="ค้นหาข้อมูล..." /></label
+          ><button class="icon-button">♢<i></i></button>
+          <details class="account-menu">
+            <summary class="profile-button">
+              <span class="avatar">จน</span
+              ><span><b>อรทัย ใจดี</b><small>เจ้าหน้าที่ทันตกรรม</small></span
+              ><span>⌄</span>
+            </summary>
+            <div class="account-dropdown">
+              <small>ประเภทผู้ใช้งาน</small>
+              <p class="role-current">เจ้าหน้าที่ทันตกรรม</p>
+              <a class="logout-button" href="login.html">↪ ออกจากระบบ</a>
+            </div>
+          </details>
+        </div>
+      </header>
+      <section class="page-content">
+        <div class="page-header">
+          <div>
+            <span class="eyebrow">งานประจำวัน</span>
+            <h2>ภาพรวมงานเจ้าหน้าที่ทันตกรรม</h2>
+            <p>ตรวจสอบคำขอจองคิว ผู้ป่วย และคลังวัสดุประจำวัน</p>
+          </div>
+          <a class="primary-button fit" href="appointments.html"
+            >ดูนัดหมายวันนี้</a
+          >
+        </div>
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span class="stat-icon orange">⌛</span>
+            <div>
+              <p>คำขอรออนุมัติ</p>
+              <h3>7</h3>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="stat-icon green">◷</span>
+            <div>
+              <p>นัดหมายวันนี้</p>
+              <h3>24</h3>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="stat-icon">♙</span>
+            <div>
+              <p>ผู้ป่วย Walk-in</p>
+              <h3>4</h3>
+            </div>
+          </article>
+          <article class="stat-card">
+            <span class="stat-icon purple">!</span>
+            <div>
+              <p>วัสดุใกล้หมด</p>
+              <h3>3</h3>
+            </div>
+          </article>
+        </div>
+        <div class="content-grid wide-left">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h3>คำขอจองคิวล่าสุด</h3>
+                <p>รอการตรวจสอบและอนุมัติ</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <tr>
+                  <th>เวลา</th>
+                  <th>ผู้ป่วย</th>
+                  <th>บริการ</th>
+                  <th>สถานะ</th>
+                </tr>
+                <tr>
+                  <td>10:00</td>
+                  <td>พิมพ์ชนก แสงทอง</td>
+                  <td>อุดฟัน</td>
+                  <td><span class="status orange">รออนุมัติ</span></td>
+                </tr>
+                <tr>
+                  <td>15:00</td>
+                  <td>สุรีย์พร คำดี</td>
+                  <td>รักษารากฟัน</td>
+                  <td><span class="status orange">รออนุมัติ</span></td>
+                </tr>
+              </table>
+            </div>
+          </section>
+          <section class="panel">
+            <div class="panel-header"><h3>งานด่วนวันนี้</h3></div>
+            <div class="task-list">
+              <a href="appointments.html"
+                ><span>7</span>
+                <div>
+                  <b>อนุมัติคำขอจองคิว</b><small>คำขอใหม่รอตรวจสอบ</small>
+                </div>
+                →</a
+              ><a href="patients.html"
+                ><span>4</span>
+                <div>
+                  <b>ซักประวัติผู้ป่วย</b><small>ก่อนเข้าพบทันตแพทย์</small>
+                </div>
+                →</a
+              ><a href="materials.html"
+                ><span>3</span>
+                <div>
+                  <b>ตรวจสอบวัสดุใกล้หมด</b><small>ต่ำกว่าจุดสั่งซื้อ</small>
+                </div>
+                →</a
+              >
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

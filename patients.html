@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ผู้ป่วยและซักประวัติ</title>
+    <link rel="stylesheet" href="../public/assets/css/browser-latest.css" />
+    <link rel="stylesheet" href="../public/assets/css/php-compat.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="dashboard.html"><span>DC</span><b>DentiCare</b></a>
+      <nav>
+        <a href="dashboard.html">ภาพรวม</a
+        ><a class="active" href="patients.html">ผู้ป่วยและซักประวัติ</a
+        ><a href="appointments.html">นัดหมาย</a
+        ><a href="materials.html">คลังวัสดุ</a>
+      </nav>
+    </aside>
+    <main class="workspace">
+      <header class="topbar">
+        <h1>ผู้ป่วยและซักประวัติ</h1>
+        <a href="login.html">ออกจากระบบ</a>
+      </header>
+      <section class="content">
+        <div class="tabs">
+          <button class="active">ข้อมูลผู้ป่วย</button
+          ><button>ซักประวัติ</button><button>ประวัติรักษา</button>
+        </div>
+        <section class="panel">
+          <header>
+            <h3>รายชื่อผู้ป่วย</h3>
+            <input class="search" placeholder="ค้นหา" />
+          </header>
+          <div class="table-wrap">
+            <table>
+              <tr>
+                <th>HN</th>
+                <th>ชื่อ</th>
+                <th>สิทธิ์</th>
+                <th>จัดการ</th>
+              </tr>
+              <tr>
+                <td>HN-00127</td>
+                <td>กิตติพงศ์ สุขใจ</td>
+                <td>สิทธิข้าราชการ</td>
+                <td><button class="link">ดูข้อมูล/ซักประวัติ</button></td>
+              </tr>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
