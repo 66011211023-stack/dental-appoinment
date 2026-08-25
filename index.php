@@ -1,11 +1,21 @@
 <?php
 declare(strict_types=1);
 
-// เปิดแสดง error ชั่วคราวเพื่อตรวจหาสาเหตุหน้าจอขาว
+// 1. เปิดการแสดงผลข้อผิดพลาดทั้งหมดฉุกเฉิน
 ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
-// Front Controller: ทุก URL ของระบบจะเข้ามาที่ไฟล์นี้ก่อนเสมอ
+// 2. ดักจับ Fatal Error และ Uncaught Exception ทุกชนิดมาพิมพ์ลงหน้าจอตรงๆ
+set_exception_handler(function (Throwable $e): void {
+    echo '<div style="background:#fee2e2; border:2px solid #ef4444; color:#991b1b; padding:20px; margin:20px; font-family:sans-serif; border-radius:8px;">';
+    echo '<h2 style="margin-top:0;">⚠️ พบข้อผิดพลาดในระบบ (System Error)</h2>';
+    echo '<p><b>ข้อความแจ้งเตือน:</b> ' . htmlspecialchars($e->getMessage()) . '</p>';
+    echo '<p><b>เกิดขึ้นที่ไฟล์:</b> ' . htmlspecialchars($e->getFile()) . ' (บรรทัดที่ ' . $e->getLine() . ')</p>';
+    echo '<details><summary style="cursor:pointer; font-weight:bold;">ดู Stack Trace เพิ่มเติม</summary>';
+    echo '<pre style="background:#fff; padding:10px; border-radius:4px; overflow:auto;">' . htmlspecialchars($e->getTraceAsString()) . '</pre></details>';
+    echo '</div>';
+});
 
 // ใช้ Session ผ่าน Cookie เท่านั้น และป้องกันการนำ Session ID เดิมกลับมาใช้ซ้ำ
 ini_set('session.use_strict_mode', '1');
@@ -18,26 +28,22 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
 session_name('denticare_session');
 session_start();
 
-// Autoloader ค้นหาทั้งใน Root และโฟลเดอร์ app (รองรับทั้งตัวพิมพ์เล็ก-ใหญ่)
+// Autoloader ครอบคลุมทั้ง Root และโฟลเดอร์ app/ (รองรับทั้งตัวพิมพ์เล็ก-ใหญ่)
 spl_autoload_register(function (string $class): void {
-    $prefix = 'App\\';
-    if (!str_starts_with($class, $prefix)) return;
-
-    $relativeClass = substr($class, strlen($prefix));
-    $file = str_replace('\\', '/', $relativeClass) . '.php';
-    $filenameOnly = basename($file);
-
-    $paths = [
-        __DIR__ . '/' . $filenameOnly,
-        __DIR__ . '/' . strtolower($filenameOnly),
-        __DIR__ . '/app/' . $file,
-        __DIR__ . '/app/' . strtolower($file),
-    ];
-
-    foreach ($paths as $path) {
-        if (file_exists($path)) {
-            require_once $path;
-            return;
+    $prefix = 'App\\Core\\';
+    if (str_starts_with($class, $prefix)) {
+        $className = substr($class, strlen($prefix));
+        $paths = [
+            __DIR__ . '/' . $className . '.php',
+            __DIR__ . '/' . strtolower($className) . '.php',
+            __DIR__ . '/app/Core/' . $className . '.php',
+            __DIR__ . '/app/core/' . strtolower($className) . '.php',
+        ];
+        foreach ($paths as $path) {
+            if (file_exists($path)) {
+                require_once $path;
+                return;
+            }
         }
     }
 });
@@ -81,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'regis
         $_SESSION['register_old'] = $_POST;
         header('Location: /?page=register'); exit;
     }
-    // users.username ยังคงเป็นคอลัมน์บังคับ จึงสร้างค่าใช้ภายในจากอีเมลโดยไม่แสดงให้ผู้ป่วยกรอก
+    
     $emailName = strtolower((string)strtok($email, '@'));
     $usernameBase = substr((string)preg_replace('/[^a-z0-9_.-]/', '', $emailName), 0, 40);
     if (strlen($usernameBase) < 4) $usernameBase = 'patient';
@@ -139,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'forgo
     header('Location: /?page=login'); exit;
 }
 
-// บันทึกรหัสผ่านใหม่จริงลงฐานข้อมูล สิทธิ์รีเซ็ตมีอายุ 15 นาทีและใช้ได้ครั้งเดียว
+// บันทึกรหัสผ่านใหม่จริงลงฐานข้อมูล
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'reset_password') {
     Csrf::verify();
     $userId = (int)($_SESSION['reset_user_id'] ?? 0);
