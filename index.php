@@ -13,44 +13,40 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
 session_name('denticare_session');
 session_start();
 
-// ดึงไฟล์ Core หลักเข้ามาใช้งานตรงๆ
-// ฟังก์ชันช่วย require ไฟล์แบบไม่สนตัวพิมพ์เล็ก-ใหญ่บน Linux
-function require_case_insensitive(string $filepath): void {
-    if (file_exists($filepath)) {
-        require_once $filepath;
-        return;
-    }
-    $directory = dirname($filepath);
-    $filename = basename($filepath);
-    if (is_dir($directory)) {
-        $files = scandir($directory);
-        foreach ($files as $file) {
-            if (strcasecmp($file, $filename) === 0) {
-                require_once $directory . '/' . $file;
-                return;
+// ฟังก์ชันโหลดไฟล์ Core หลักแบบไม่สนตัวพิมพ์เล็ก-ใหญ่บน Linux Server
+function loadCoreFile(string $relativePath): void {
+    $basePath = __DIR__;
+    $parts = explode('/', trim($relativePath, '/'));
+    
+    foreach ($parts as $part) {
+        $found = false;
+        if (is_dir($basePath)) {
+            $items = scandir($basePath);
+            if ($items !== false) {
+                foreach ($items as $item) {
+                    if (strcasecmp($item, $part) === 0) {
+                        $basePath .= '/' . $item;
+                        $found = true;
+                        break;
+                    }
+                }
             }
         }
+        if (!$found) return;
+    }
+    
+    if (is_file($basePath)) {
+        require_once $basePath;
     }
 }
 
-// เรียกใช้งาน
-require_case_insensitive(__DIR__ . '/app/core/auth.php');
-require_case_insensitive(__DIR__ . '/app/core/actions.php');
-require_case_insensitive(__DIR__ . '/app/core/csrf.php');
-require_case_insensitive(__DIR__ . '/app/core/database.php');
-require_case_insensitive(__DIR__ . '/app/core/password.php');
-require_case_insensitive(__DIR__ . '/app/core/view.php');
-
-use App\Core\Auth;
-use App\Core\Actions;
-use App\Core\Csrf;
-use App\Core\Database;
-use App\Core\Password;
-use App\Core\View;
-
-// ...ส่วนโค้ดอื่นๆ ด้านล่างปล่อยเหมือนเดิม...
-
-// บัญชีที่ล็อกอินอยู่แล้วไม่ควรสมัครบัญชีผู้ป่วยซ้ำจาก Session เดิม
+// บังคับโหลดไฟล์ Core ทั้งหมด
+loadCoreFile('app/core/auth.php');
+loadCoreFile('app/core/actions.php');
+loadCoreFile('app/core/csrf.php');
+loadCoreFile('app/core/database.php');
+loadCoreFile('app/core/password.php');
+loadCoreFile('app/core/view.php');
 if (Auth::check() && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'register') {
     header('Location: /?page=dashboard'); exit;
 }
