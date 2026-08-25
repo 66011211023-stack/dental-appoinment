@@ -14,12 +14,32 @@ session_name('denticare_session');
 session_start();
 
 // ดึงไฟล์ Core หลักเข้ามาใช้งานตรงๆ
-require_once __DIR__ . '/app/Core/Auth.php';
-require_once __DIR__ . '/app/Core/Actions.php';
-require_once __DIR__ . '/app/Core/Csrf.php';
-require_once __DIR__ . '/app/Core/Database.php';
-require_once __DIR__ . '/app/Core/Password.php';
-require_once __DIR__ . '/app/Core/View.php';
+// ฟังก์ชันช่วย require ไฟล์แบบไม่สนตัวพิมพ์เล็ก-ใหญ่บน Linux
+function require_case_insensitive(string $filepath): void {
+    if (file_exists($filepath)) {
+        require_once $filepath;
+        return;
+    }
+    $directory = dirname($filepath);
+    $filename = basename($filepath);
+    if (is_dir($directory)) {
+        $files = scandir($directory);
+        foreach ($files as $file) {
+            if (strcasecmp($file, $filename) === 0) {
+                require_once $directory . '/' . $file;
+                return;
+            }
+        }
+    }
+}
+
+// เรียกใช้งาน
+require_case_insensitive(__DIR__ . '/app/core/auth.php');
+require_case_insensitive(__DIR__ . '/app/core/actions.php');
+require_case_insensitive(__DIR__ . '/app/core/csrf.php');
+require_case_insensitive(__DIR__ . '/app/core/database.php');
+require_case_insensitive(__DIR__ . '/app/core/password.php');
+require_case_insensitive(__DIR__ . '/app/core/view.php');
 
 use App\Core\Auth;
 use App\Core\Actions;
