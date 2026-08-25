@@ -47,6 +47,15 @@ loadCoreFile('app/core/csrf.php');
 loadCoreFile('app/core/database.php');
 loadCoreFile('app/core/password.php');
 loadCoreFile('app/core/view.php');
+
+// นำคลาสจาก Namespace App\Core มาใช้งานในไฟล์นี้
+use App\Core\Auth;
+use App\Core\Actions;
+use App\Core\Csrf;
+use App\Core\Database;
+use App\Core\Password;
+use App\Core\View;
+
 if (Auth::check() && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'register') {
     header('Location: /?page=dashboard'); exit;
 }
