@@ -1,4 +1,14 @@
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # ป้องกัน Infinite Loop เมื่อมีการ rewrite
+    RewriteCond %{ENV:REDIRECT_STATUS} 200
+    RewriteRule ^ - [L]
+
+    # หากไฟล์หรือโฟลเดอร์นั้นมีอยู่จริง ให้เรียกตรงๆ ไม่ต้อง rewrite
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # ส่ง request ทั้งหมดไปที่ index.php
+    RewriteRule ^ index.php [L]
+</IfModule>
