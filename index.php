@@ -16,8 +16,39 @@ session_start();
 spl_autoload_register(function (string $class): void {
     $prefix = 'App\\';
     if (!str_starts_with($class, $prefix)) return;
-    $path = __DIR__ . '/app/' . str_replace('\\', '/', substr($class, strlen($prefix))) . '.php';
-    if (is_file($path)) require $path;
+    
+    $relativeClass = substr($class, strlen($prefix));
+    $parts = explode('\\', $relativeClass);
+    
+    // เริ่มค้นจากไดเรกทอรี app
+    $currentPath = __DIR__ . '/app';
+    
+    foreach ($parts as $index => $part) {
+        $isLast = ($index === count($parts) - 1);
+        $targetName = $isLast ? $part . '.php' : $part;
+        
+        if (!is_dir($currentPath) && !$isLast) return;
+        
+        // ดึงรายการไฟล์/โฟลเดอร์ทั้งหมดมาเทียบแบบ Case-Insensitive
+        $files = scandir($currentPath);
+        $found = false;
+        
+        if ($files !== false) {
+            foreach ($files as $file) {
+                if (strcasecmp($file, $targetName) === 0) {
+                    $currentPath .= '/' . $file;
+                    $found = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!$found) return;
+    }
+    
+    if (is_file($currentPath)) {
+        require $currentPath;
+    }
 });
 
 use App\Core\Auth;
