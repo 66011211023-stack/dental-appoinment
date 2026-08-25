@@ -13,42 +13,29 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
 session_name('denticare_session');
 session_start();
 
-// ฟังก์ชันโหลดไฟล์ Core หลักแบบไม่สนตัวพิมพ์เล็ก-ใหญ่บน Linux Server
-function loadCoreFile(string $relativePath): void {
-    $basePath = __DIR__;
-    $parts = explode('/', trim($relativePath, '/'));
-    
-    foreach ($parts as $part) {
-        $found = false;
-        if (is_dir($basePath)) {
-            $items = scandir($basePath);
-            if ($items !== false) {
-                foreach ($items as $item) {
-                    if (strcasecmp($item, $part) === 0) {
-                        $basePath .= '/' . $item;
-                        $found = true;
-                        break;
-                    }
-                }
-            }
-        }
-        if (!$found) return;
-    }
-    
-    if (is_file($basePath)) {
-        require_once $basePath;
-    }
-}
+// Autoloader: ดึงไฟล์ตาม Namespace โดยลองทั้งชื่อตรงและตัวพิมพ์เล็ก (รองรับ Linux Server)
+spl_autoload_register(function (string $class): void {
+    $prefix = 'App\\';
+    if (!str_starts_with($class, $prefix)) return;
 
-// บังคับโหลดไฟล์ Core ทั้งหมด
-loadCoreFile('app/core/auth.php');
-loadCoreFile('app/core/actions.php');
-loadCoreFile('app/core/csrf.php');
-loadCoreFile('app/core/database.php');
-loadCoreFile('app/core/password.php');
-loadCoreFile('app/core/view.php');
+    $relativeClass = substr($class, strlen($prefix));
+    $file = str_replace('\\', '/', $relativeClass) . '.php';
 
-// นำคลาสจาก Namespace App\Core มาใช้งานในไฟล์นี้
+    // 1. ลองหาตาม Path ปกติ (เช่น app/Core/Auth.php)
+    $path1 = __DIR__ . '/app/' . $file;
+    if (file_exists($path1)) {
+        require_once $path1;
+        return;
+    }
+
+    // 2. ถ้าไม่เจอ ลองหาตาม Path ตัวพิมพ์เล็กทั้งหมด (เช่น app/core/auth.php)
+    $path2 = __DIR__ . '/app/' . strtolower($file);
+    if (file_exists($path2)) {
+        require_once $path2;
+        return;
+    }
+});
+
 use App\Core\Auth;
 use App\Core\Actions;
 use App\Core\Csrf;
