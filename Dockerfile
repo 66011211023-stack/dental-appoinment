@@ -1,12 +1,21 @@
 FROM php:8.3-apache
-RUN docker-php-ext-install pdo pdo_mysql
-RUN a2enmod rewrite
 
-# ชี้ DocumentRoot ไปที่ /var/www/html โดยตรง
-RUN sed -ri -e 's!/var/www/html/public!/var/www/html!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/htdocs!/var/www/html!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# ติดตั้ง System dependencies และ PHP extensions
+RUN apt-get update && apt-get install -y \
+    unzip \
+    git \
+    && docker-php-ext-install pdo pdo_mysql
+
+# ติดตั้ง Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+RUN a2enmod rewrite
 
 WORKDIR /var/www/html
 COPY . /var/www/html
+
+# สั่งติดตั้ง dependencies และเจน Autoload สำหรับ Namespace App\
+RUN composer install --no-interaction --optimize-autoloader
+
 RUN chown -R www-data:www-data /var/www/html
 EXPOSE 80
