@@ -14,28 +14,29 @@ session_name('denticare_session');
 session_start();
 
 // Autoloader: ดึงไฟล์ตาม Namespace โดยลองทั้งชื่อตรงและตัวพิมพ์เล็ก (รองรับ Linux Server)
+// Autoloader ค้นหาทั้งใน app/ และ Root directory
 spl_autoload_register(function (string $class): void {
     $prefix = 'App\\';
     if (!str_starts_with($class, $prefix)) return;
 
     $relativeClass = substr($class, strlen($prefix));
     $file = str_replace('\\', '/', $relativeClass) . '.php';
+    $filenameOnly = basename($file); // ดึงเฉพาะชื่อไฟล์ เช่น Auth.php
 
-    // 1. ลองหาตาม Path ปกติ (เช่น app/Core/Auth.php)
-    $path1 = __DIR__ . '/app/' . $file;
-    if (file_exists($path1)) {
-        require_once $path1;
-        return;
-    }
+    $paths = [
+        __DIR__ . '/' . $filenameOnly,                       // เช็กที่ Root: /Auth.php
+        __DIR__ . '/' . strtolower($filenameOnly),           // เช็กที่ Root ตัวพิมพ์เล็ก: /auth.php
+        __DIR__ . '/app/' . $file,                           // เช็กใน app/Core/Auth.php
+        __DIR__ . '/app/' . strtolower($file),               // เช็กใน app/core/auth.php
+    ];
 
-    // 2. ถ้าไม่เจอ ลองหาตาม Path ตัวพิมพ์เล็กทั้งหมด (เช่น app/core/auth.php)
-    $path2 = __DIR__ . '/app/' . strtolower($file);
-    if (file_exists($path2)) {
-        require_once $path2;
-        return;
+    foreach ($paths as $path) {
+        if (file_exists($path)) {
+            require_once $path;
+            return;
+        }
     }
 });
-
 use App\Core\Auth;
 use App\Core\Actions;
 use App\Core\Csrf;
