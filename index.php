@@ -1,4 +1,8 @@
 <?php
+// เปิดการแสดง Error เพื่อเช็กสาเหตุหากเกิดปัญหา
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
+
 // Front Controller: ทุก URL ของระบบจะเข้ามาที่ไฟล์นี้ก่อนเสมอ
 declare(strict_types=1);
 
@@ -13,21 +17,20 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
 session_name('denticare_session');
 session_start();
 
-// Autoloader: ดึงไฟล์ตาม Namespace โดยลองทั้งชื่อตรงและตัวพิมพ์เล็ก (รองรับ Linux Server)
-// Autoloader ค้นหาทั้งใน app/ และ Root directory
+// Autoloader ค้นหาทั้งใน Root และโฟลเดอร์ app (รองรับทั้งตัวพิมพ์เล็ก-ใหญ่)
 spl_autoload_register(function (string $class): void {
     $prefix = 'App\\';
     if (!str_starts_with($class, $prefix)) return;
 
     $relativeClass = substr($class, strlen($prefix));
     $file = str_replace('\\', '/', $relativeClass) . '.php';
-    $filenameOnly = basename($file); // ดึงเฉพาะชื่อไฟล์ เช่น Auth.php
+    $filenameOnly = basename($file);
 
     $paths = [
-        __DIR__ . '/' . $filenameOnly,                       // เช็กที่ Root: /Auth.php
-        __DIR__ . '/' . strtolower($filenameOnly),           // เช็กที่ Root ตัวพิมพ์เล็ก: /auth.php
-        __DIR__ . '/app/' . $file,                           // เช็กใน app/Core/Auth.php
-        __DIR__ . '/app/' . strtolower($file),               // เช็กใน app/core/auth.php
+        __DIR__ . '/' . $filenameOnly,
+        __DIR__ . '/' . strtolower($filenameOnly),
+        __DIR__ . '/app/' . $file,
+        __DIR__ . '/app/' . strtolower($file),
     ];
 
     foreach ($paths as $path) {
@@ -37,6 +40,7 @@ spl_autoload_register(function (string $class): void {
         }
     }
 });
+
 use App\Core\Auth;
 use App\Core\Actions;
 use App\Core\Csrf;
@@ -168,7 +172,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 $page = $_GET['page'] ?? (Auth::check() ? 'dashboard' : 'login');
 
 // เมื่อเปิดลิงก์หน้า Login โดยตรง ให้ล้างบัญชีเดิมก่อนเสมอ
-// ป้องกันเครื่องที่ใช้ร่วมกันเปิดเว็บแล้วเข้าเป็นผู้ใช้คนก่อน
 if (Auth::check() && $page === 'login' && $_SERVER['REQUEST_METHOD'] === 'GET') {
     Auth::logout();
     header('Location: /?page=login'); exit;
@@ -185,9 +188,7 @@ if ($page === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = (string)($_POST['password'] ?? '');
     $user = Database::query('SELECT * FROM users WHERE (username = ? OR email = ?) AND is_active = 1 LIMIT 1', [$username,$username])->fetch();
     if ($user && Password::verify($password, (string)$user['password_hash'])) {
-        // เปลี่ยน Session ID ทุกครั้งที่เข้าสู่ระบบ ป้องกัน Session Fixation
         session_regenerate_id(true);
-        // อัปเกรดบัญชีเก่าจาก SHA-256 เป็น bcrypt หลังเข้าสู่ระบบสำเร็จ
         if (Password::needsUpgrade((string)$user['password_hash'])) {
             Database::query('UPDATE users SET password_hash=? WHERE id=?', [Password::hash($password),(int)$user['id']]);
         }
@@ -243,6 +244,6 @@ $titles = [
     'notifications'=>'การแจ้งเตือน','profile'=>'ข้อมูลส่วนตัว','booking'=>'จองคิวทันตกรรม',
     'material-usage'=>'เบิกใช้วัสดุ','service-stats'=>'สถิติการให้บริการ'
 ];
-// แต่ละโมดูลมี View แยกไฟล์ ทำให้อ่าน แก้ไข และอธิบายโค้ดได้ง่าย
+
 $moduleView = 'modules/' . $page;
 View::render($moduleView, ['title'=>$titles[$page], 'module'=>$page]);
