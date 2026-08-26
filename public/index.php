@@ -1,25 +1,32 @@
 <?php
 session_start();
 
-// ระบบ Autoload ที่ปรับให้รองรับโครงสร้างไฟล์ตัวพิมพ์เล็ก (lowercase)
+// 1. ระบบ Autoload ที่ค้นหาครอบคลุมโฟลเดอร์ซ้อน dental-appoinment
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';
-    $baseDir = dirname(__DIR__) . '/app/';
-
     $len = strlen($prefix);
     if (strncmp($prefix, $class, $len) !== 0) {
         return;
     }
 
     $relativeClass = substr($class, $len);
-    $path = str_replace('\\', '/', $relativeClass) . '.php';
+    $fileName = strtolower(basename(str_replace('\\', '/', $relativeClass))) . '.php';
+    $rawPath = str_replace('\\', '/', $relativeClass) . '.php';
 
-    // รายการพาธที่ค้นหา (รองรับทั้งตัวพิมพ์เล็กทั้งหมด และแบบ CamelCase)
+    $rootDir = dirname(__DIR__); // /var/www/html
+
+    // ค้นหารายการตำแหน่งพาธทั้งหมดที่เป็นไปได้บน Render/GitHub
     $possibleFiles = [
-        $baseDir . strtolower($path),                           // เช่น app/core/auth.php
-        $baseDir . $path,                                       // เช่น app/Core/Auth.php
-        dirname(__DIR__) . '/app/core/' . strtolower(basename($path)),
-        dirname(__DIR__) . '/app/Core/' . basename($path)
+        // พาธซ้อนโฟลเดอร์ dental-appoinment (ตามโครงสร้างบน GitHub คุณ)
+        $rootDir . '/dental-appoinment/app/Core/' . $fileName,
+        $rootDir . '/dental-appoinment/app/core/' . $fileName,
+        $rootDir . '/dental-appoinment/app/Core/' . basename($rawPath),
+        
+        // พาธระดับปกติ
+        $rootDir . '/app/Core/' . $fileName,
+        $rootDir . '/app/core/' . $fileName,
+        $rootDir . '/app/Core/' . basename($rawPath),
+        $rootDir . '/app/' . strtolower($rawPath),
     ];
 
     foreach ($possibleFiles as $file) {
@@ -33,15 +40,15 @@ spl_autoload_register(function ($class) {
 use App\Core\Auth;
 use App\Core\View;
 
-// ตรวจสอบความปลอดภัย
+// ตรวจสอบคลาส Auth
 if (!class_exists('App\Core\Auth')) {
     die("<div style='padding:20px; background:#fee2e2; color:#991b1b; font-family:sans-serif; border-radius:8px;'>"
         . "<h3>⚠️ ไม่พบไฟล์ auth.php!</h3>"
-        . "<p>ระบบค้นหาในพาธ <code>app/core/auth.php</code> แล้วยังไม่พบครับ</p>"
+        . "<p>พาธ root ปัจจุบัน: <code>" . htmlspecialchars(dirname(__DIR__)) . "</code></p>"
         . "</div>");
 }
 
-// เช็คการออกจากระบบ
+// 2. เช็คการออกจากระบบ
 $page = $_GET['page'] ?? 'login';
 
 if ($page === 'logout') {
@@ -50,13 +57,13 @@ if ($page === 'logout') {
     exit;
 }
 
-// เช็คสิทธิ์การเข้าถึง
+// 3. เช็คสิทธิ์การเข้าถึง
 if (!Auth::check() && !in_array($page, ['login', 'register', 'forgot'], true)) {
     header('Location: /?page=login');
     exit;
 }
 
-// Map ชื่อหน้าไปยัง Views
+// 4. Map ชื่อหน้าไปยัง Views
 $viewMap = [
     'login'          => 'auth/login',
     'register'       => 'auth/register',
