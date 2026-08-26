@@ -4,7 +4,6 @@ namespace App\Core;
 
 class Actions
 {
-    // 1. เข้าสู่ระบบ
     public static function login(array $post): void
     {
         $username = trim($post['username'] ?? '');
@@ -20,16 +19,21 @@ class Actions
         exit;
     }
 
-    // 2. สมัครสมาชิกผู้ป่วย
     public static function register(array $post): void
     {
-        $fullName = trim($post['full_name'] ?? '');
+        $firstName = trim($post['first_name'] ?? '');
+        $lastName = trim($post['last_name'] ?? '');
+        $fullName = trim($firstName . ' ' . $lastName);
         $email = trim($post['email'] ?? '');
         $phone = trim($post['phone'] ?? '');
         $password = $post['password'] ?? '';
         $confirmPassword = $post['password_confirmation'] ?? '';
+        $nationalId = trim($post['national_id'] ?? '');
+        $birthDate = !empty($post['birth_date']) ? $post['birth_date'] : null;
+        $coverageType = trim($post['coverage_type'] ?? 'จ่ายตรง/เงินสด');
+        $address = trim($post['address'] ?? '');
 
-        if (empty($fullName) || empty($email) || empty($password)) {
+        if (empty($firstName) || empty($email) || empty($password)) {
             $_SESSION['error'] = 'กรุณากรอกข้อมูลสำคัญให้ครบถ้วน';
             header('Location: /?page=register');
             exit;
@@ -48,25 +52,29 @@ class Actions
             exit;
         }
 
+        // 1. เพิ่ม User
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
         Database::query(
             "INSERT INTO users (username, email, password, full_name, role) VALUES (?, ?, ?, ?, 'patient')",
             [$email, $email, $hashedPassword, $fullName]
         );
-
         $userId = Database::lastInsertId();
 
+        // 2. สุ่มรหัส HN (เช่น HN69001)
+        $hn = 'HN' . rand(10000, 99999);
+
+        // 3. บันทึกลงตาราง patients
         Database::query(
-            "INSERT INTO patients (user_id, full_name, phone) VALUES (?, ?, ?)",
-            [$userId, $fullName, $phone]
+            "INSERT INTO patients (user_id, hn, full_name, phone, national_id, birth_date, coverage_type, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [$userId, $hn, $fullName, $phone, $nationalId, $birthDate, $coverageType, $address]
         );
 
+        // Auto Login
         Auth::login($email, $password);
         header('Location: /?page=dashboard');
         exit;
     }
 
-    // 3. ตรวจสอบอีเมลเมื่อกดลืมรหัสผ่าน
     public static function forgotLookup(array $post): void
     {
         $email = trim($post['email'] ?? '');
@@ -84,7 +92,6 @@ class Actions
         exit;
     }
 
-    // 4. บันทึกรหัสผ่านใหม่
     public static function resetPassword(array $post): void
     {
         $userId = $_SESSION['reset_user_id'] ?? null;
