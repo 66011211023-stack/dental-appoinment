@@ -20,7 +20,7 @@ class Actions
         exit;
     }
 
-    // 2. สมัครสมาชิกผู้ป่วย (แก้ปุ่มสมัครสมาชิก)
+    // 2. สมัครสมาชิกผู้ป่วย
     public static function register(array $post): void
     {
         $fullName = trim($post['full_name'] ?? '');
