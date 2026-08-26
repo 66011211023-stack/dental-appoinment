@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>นัดหมาย</title>
+    <link rel="stylesheet" href="../public/assets/css/browser-latest.css" />
+    <link rel="stylesheet" href="../public/assets/css/php-compat.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="dashboard.html"><span>DC</span><b>DentiCare</b></a>
+      <nav>
+        <a href="dashboard.html">ภาพรวม</a
+        ><a href="patients.html">ผู้ป่วยและซักประวัติ</a
+        ><a class="active" href="appointments.html">นัดหมาย</a
+        ><a href="materials.html">คลังวัสดุ</a>
+      </nav>
+    </aside>
+    <main class="workspace">
+      <header class="topbar">
+        <h1>คำขอและนัดหมาย</h1>
+        <a href="login.html">ออกจากระบบ</a>
+      </header>
+      <section class="content">
+        <div class="page-head">
+          <h2>รายการนัดหมาย</h2>
+          <button class="btn primary">+ เพิ่มนัดหมาย</button>
+        </div>
+        <section class="panel">
+          <div class="table-wrap">
+            <table>
+              <tr>
+                <th>วัน/เวลา</th>
+                <th>ผู้ป่วย</th>
+                <th>บริการ</th>
+                <th>สถานะ</th>
+              </tr>
+              <tr>
+                <td>01/08/2569 10:30</td>
+                <td>กิตติพงศ์ สุขใจ</td>
+                <td>ขูดหินปูน</td>
+                <td><span class="status approved">อนุมัติแล้ว</span></td>
+              </tr>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
