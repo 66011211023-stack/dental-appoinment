@@ -8,10 +8,9 @@ final class View
     {
         extract($data, EXTR_SKIP);
 
-        // อ้างอิงโฟลเดอร์ที่ view.php อยู่เป็นหลัก
         $baseDir = __DIR__;
 
-        // ค้นหาโฟลเดอร์ Views/views ภายในพาธปัจจุบัน
+        // ค้นหาโฟลเดอร์ Views แบบไม่สนตัวพิมพ์เล็ก-ใหญ่
         $possibleViewsDirs = [
             $baseDir . '/Views',
             $baseDir . '/views',
@@ -31,12 +30,32 @@ final class View
             $baseViewsDir = $baseDir . '/Views';
         }
 
-        $viewFile = $baseViewsDir . '/' . $view . '.php';
+        // ลองค้นหาไฟล์ view แบบยืดหยุ่น (รองรับทั้งตัวพิมพ์เล็กและตัวพิมพ์ใหญ่)
+        $viewParts = explode('/', $view);
+        $fileName = array_pop($viewParts);
+        $subDir = implode('/', $viewParts);
+        
+        $targetDir = $baseViewsDir . ($subDir ? '/' . $subDir : '');
 
-        if (!file_exists($viewFile)) {
+        $possibleFiles = [
+            $targetDir . '/' . $fileName . '.php',
+            $targetDir . '/' . ucfirst($fileName) . '.php',
+            $targetDir . '/' . strtolower($fileName) . '.php',
+        ];
+
+        $viewFile = null;
+        foreach ($possibleFiles as $file) {
+            if (file_exists($file)) {
+                $viewFile = $file;
+                break;
+            }
+        }
+
+        if (!$viewFile) {
             echo "<div style='background:#fee2e2; color:#991b1b; padding:20px; font-family:sans-serif;'>";
             echo "<h3>⚠️ View File Not Found!</h3>";
-            echo "<p>ไม่พบไฟล์หน้าเว็บที่: <code>" . htmlspecialchars($viewFile) . "</code></p>";
+            echo "<p>ไม่พบไฟล์หน้าเว็บที่: <code>" . htmlspecialchars($targetDir . '/' . $fileName . '.php') . "</code></p>";
+            echo "<p>โปรดตรวจสอบโฟลเดอร์ <b>Views/auth/</b> ว่ามีไฟล์ <b>login.php</b> อยู่หรือไม่</p>";
             echo "</div>";
             return;
         }
@@ -45,19 +64,11 @@ final class View
         $headerFile = $baseViewsDir . '/layouts/header.php';
         $footerFile = $baseViewsDir . '/layouts/footer.php';
 
-        // ตรวจสอบไฟล์ประกอบก่อน require เพื่อป้องกัน Fatal Error
-        if (file_exists($componentsFile)) {
-            require_once $componentsFile;
-        }
-        
-        if (file_exists($headerFile)) {
-            require $headerFile;
-        }
+        if (file_exists($componentsFile)) require_once $componentsFile;
+        if (file_exists($headerFile)) require $headerFile;
         
         require $viewFile;
         
-        if (file_exists($footerFile)) {
-            require $footerFile;
-        }
+        if (file_exists($footerFile)) require $footerFile;
     }
 }
