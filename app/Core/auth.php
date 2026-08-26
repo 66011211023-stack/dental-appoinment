@@ -1,35 +1,52 @@
 <?php
+
 namespace App\Core;
 
-final class Auth
+class Auth
 {
-    public static function user(): ?array { return $_SESSION['user'] ?? null; }
-    public static function check(): bool { return isset($_SESSION['user']); }
-    public static function requireLogin(): void
+    // ตรวจสอบข้อมูลล็อกอิน
+    public static function login(string $username, string $password): bool
     {
-        if (!self::check()) { header('Location: /?page=login'); exit; }
-    }
-    public static function logout(): void
-    {
-        $_SESSION = [];
+        $stmt = Database::query(
+            "SELECT * FROM users WHERE username = ? OR email = ? LIMIT 1",
+            [$username, $username]
+        );
+        $user = $stmt->fetch();
 
-        // ลบ Session Cookie ออกจากเบราว์เซอร์ด้วย ไม่ใช่ล้างเฉพาะข้อมูลฝั่ง Server
-        if (ini_get('session.use_cookies')) {
-            $params = session_get_cookie_params();
-            setcookie(
-                session_name(),
-                '',
-                [
-                    'expires' => time() - 42000,
-                    'path' => $params['path'],
-                    'domain' => $params['domain'],
-                    'secure' => (bool)$params['secure'],
-                    'httponly' => (bool)$params['httponly'],
-                    'samesite' => 'Lax',
-                ]
-            );
+        if ($user && password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user'] = $user;
+            return true;
         }
 
+        return false;
+    }
+
+    // ตรวจสอบสถานะการล็อกอิน
+    public static function check(): bool
+    {
+        return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+    }
+
+    // ดึงข้อมูลผู้ใช้ปัจจุบัน
+    public static function user(): ?array
+    {
+        if (!self::check()) {
+            return null;
+        }
+
+        if (!isset($_SESSION['user'])) {
+            $stmt = Database::query("SELECT * FROM users WHERE id = ? LIMIT 1", [$_SESSION['user_id']]);
+            $_SESSION['user'] = $stmt->fetch() ?: null;
+        }
+
+        return $_SESSION['user'];
+    }
+
+    // ออกจากระบบ
+    public static function logout(): void
+    {
+        unset($_SESSION['user_id'], $_SESSION['user']);
         session_destroy();
     }
 }
