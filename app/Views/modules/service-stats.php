@@ -1,0 +1,9 @@
+<?php use App\Core\Auth;use App\Core\Database;
+$u=Auth::user();$did=(int)Database::query('SELECT id FROM dentists WHERE user_id=?',[$u['id']])->fetchColumn();
+$s=Database::query("SELECT COUNT(DISTINCT a.patient_id) patients,COUNT(t.id) services,COALESCE(SUM(t.cost),0) revenue FROM appointments a LEFT JOIN treatments t ON t.appointment_id=a.id WHERE a.dentist_id=? AND YEAR(a.appointment_date)=YEAR(CURDATE()) AND MONTH(a.appointment_date)=MONTH(CURDATE())",[$did])->fetch();
+$types=Database::query("SELECT a.service,COUNT(*) total FROM appointments a WHERE a.dentist_id=? AND a.status='completed' GROUP BY a.service ORDER BY total DESC",[$did])->fetchAll();page_header('สถิติการให้บริการของฉัน','ข้อมูลการรักษาจริงจากฐานข้อมูล');?>
+<div class="stats-grid three">
+    <?php stat_card('♙',(string)$s['patients'],'ผู้ป่วยเดือนนี้','คน');stat_card('✚',(string)$s['services'],'หัตถการทั้งหมด','ครั้ง','green');stat_card('฿',number_format((float)$s['revenue'],2),'มูลค่าบริการ','บาท','orange');?>
+</div>
+<section class="panel">
+    <?php data_table(['ประเภทบริการ','จำนวนครั้ง'],array_map(fn($r)=>[$r['service'],$r['total']],$types));?></section>
