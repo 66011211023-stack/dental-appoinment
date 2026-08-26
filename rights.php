@@ -1,2 +1,36 @@
-<?php use App\Core\Csrf;use App\Core\Database;$rights=Database::query('SELECT * FROM treatment_rights ORDER BY right_code')->fetchAll();page_header('สิทธิ์การรักษา','เพิ่ม แก้ไข และเปิดหรือปิดสิทธิ์');?>
-<details class="form-panel crud-form"><summary>＋ เพิ่มหรือแก้ไขสิทธิ์</summary><form method="post"><input type="hidden" name="action" value="right_save"><?=Csrf::field()?><div class="form-grid"><label>รหัสสิทธิ์<input name="right_code" required></label><label>ชื่อสิทธิ์<input name="right_name" required></label><label>หน่วยงาน<input name="organization"></label></div><button class="primary-button fit">บันทึก</button></form></details><section class="panel"><div class="table-wrap"><table><thead><tr><th>รหัส</th><th>ชื่อสิทธิ์</th><th>หน่วยงาน</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead><tbody><?php foreach($rights as $r):?><tr><td><?=$r['right_code']?></td><td><?=htmlspecialchars($r['right_name'])?></td><td><?=htmlspecialchars($r['organization']??'-')?></td><td><?=$r['is_active']?'ใช้งาน':'ปิดใช้งาน'?></td><td><form method="post"><input type="hidden" name="action" value="right_toggle"><input type="hidden" name="id" value="<?=$r['id']?>"><?=Csrf::field()?><button class="outline-button"><?=$r['is_active']?'ปิด':'เปิด'?></button></form></td></tr><?php endforeach?></tbody></table></div></section>
+<?php use App\Core\Csrf;use App\Core\Database;
+$rights=Database::query('SELECT * FROM treatment_rights ORDER BY right_code')->fetchAll();
+page_header('สิทธิ์การรักษา','เพิ่ม แก้ไข และเปิดหรือปิดสิทธิ์');?>
+<details class="form-panel crud-form">
+    <summary>＋ เพิ่มหรือแก้ไขสิทธิ์</summary>
+    <form method="post"><input type="hidden" name="action" value="right_save"><?=Csrf::field()?><div class="form-grid">
+            <label>รหัสสิทธิ์<input name="right_code" required></label><label>ชื่อสิทธิ์<input name="right_name"
+                    required></label><label>หน่วยงาน<input name="organization"></label></div><button
+            class="primary-button fit">บันทึก</button></form>
+</details>
+<section class="panel">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>รหัส</th>
+                    <th>ชื่อสิทธิ์</th>
+                    <th>หน่วยงาน</th>
+                    <th>สถานะ</th>
+                    <th>ดำเนินการ</th>
+                </tr>
+            </thead>
+            <tbody><?php foreach($rights as $r):?><tr>
+                    <td><?=$r['right_code']?></td>
+                    <td><?=htmlspecialchars($r['right_name'])?></td>
+                    <td><?=htmlspecialchars($r['organization']??'-')?></td>
+                    <td><?=$r['is_active']?'ใช้งาน':'ปิดใช้งาน'?></td>
+                    <td>
+                        <form method="post"><input type="hidden" name="action" value="right_toggle"><input type="hidden"
+                                name="id" value="<?=$r['id']?>"><?=Csrf::field()?><button
+                                class="outline-button"><?=$r['is_active']?'ปิด':'เปิด'?></button></form>
+                    </td>
+                </tr><?php endforeach?></tbody>
+        </table>
+    </div>
+</section>
