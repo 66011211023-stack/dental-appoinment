@@ -1,28 +1,21 @@
 <?php
 session_start();
 
-// 1. ระบบ Autoload ที่ค้นหาครอบคลุมโฟลเดอร์ซ้อน dental-appoinment
+// 1. Autoloader
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';
     $len = strlen($prefix);
-    if (strncmp($prefix, $class, $len) !== 0) {
-        return;
-    }
+    if (strncmp($prefix, $class, $len) !== 0) return;
 
     $relativeClass = substr($class, $len);
     $fileName = strtolower(basename(str_replace('\\', '/', $relativeClass))) . '.php';
     $rawPath = str_replace('\\', '/', $relativeClass) . '.php';
+    $rootDir = dirname(__DIR__);
 
-    $rootDir = dirname(__DIR__); // /var/www/html
-
-    // ค้นหารายการตำแหน่งพาธทั้งหมดที่เป็นไปได้บน Render/GitHub
     $possibleFiles = [
-        // พาธซ้อนโฟลเดอร์ dental-appoinment (ตามโครงสร้างบน GitHub คุณ)
         $rootDir . '/dental-appoinment/app/Core/' . $fileName,
         $rootDir . '/dental-appoinment/app/core/' . $fileName,
         $rootDir . '/dental-appoinment/app/Core/' . basename($rawPath),
-        
-        // พาธระดับปกติ
         $rootDir . '/app/Core/' . $fileName,
         $rootDir . '/app/core/' . $fileName,
         $rootDir . '/app/Core/' . basename($rawPath),
@@ -38,32 +31,42 @@ spl_autoload_register(function ($class) {
 });
 
 use App\Core\Auth;
+use App\Core\Actions;
 use App\Core\View;
 
-// ตรวจสอบคลาส Auth
-if (!class_exists('App\Core\Auth')) {
-    die("<div style='padding:20px; background:#fee2e2; color:#991b1b; font-family:sans-serif; border-radius:8px;'>"
-        . "<h3>⚠️ ไม่พบไฟล์ auth.php!</h3>"
-        . "<p>พาธ root ปัจจุบัน: <code>" . htmlspecialchars(dirname(__DIR__)) . "</code></p>"
-        . "</div>");
-}
-
-// 2. เช็คการออกจากระบบ
 $page = $_GET['page'] ?? 'login';
 
+// 2. จัดการการส่งฟอร์ม (POST Request)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($page === 'login') {
+        $action = $_POST['action'] ?? 'login';
+        if ($action === 'login') {
+            Actions::login($_POST);
+        } elseif ($action === 'forgot_lookup') {
+            Actions::forgotLookup($_POST);
+        } elseif ($action === 'reset_password') {
+            Actions::resetPassword($_POST);
+        }
+    } elseif ($page === 'register') {
+        Actions::register($_POST);
+    }
+    exit;
+}
+
+// 3. เช็คการออกจากระบบ
 if ($page === 'logout') {
     Auth::logout();
     header('Location: /?page=login');
     exit;
 }
 
-// 3. เช็คสิทธิ์การเข้าถึง
+// 4. เช็คสิทธิ์การเข้าถึงหน้าต่างๆ
 if (!Auth::check() && !in_array($page, ['login', 'register', 'forgot'], true)) {
     header('Location: /?page=login');
     exit;
 }
 
-// 4. Map ชื่อหน้าไปยัง Views
+// 5. Map หน้า Views
 $viewMap = [
     'login'          => 'auth/login',
     'register'       => 'auth/register',
