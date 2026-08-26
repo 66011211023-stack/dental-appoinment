@@ -1,7 +1,7 @@
 </main>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // 1. ปุ่มสลับหน้า Login / Forgot Password / New Password
+        // ปุ่มสลับหน้า Login / ลืมรหัสผ่าน
         document.querySelectorAll('.auth-go').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -12,7 +12,7 @@
             });
         });
 
-        // 2. ปุ่มเปิด/ปิดตาแสดงรหัสผ่าน
+        // ปุ่มแสดง/ซ่อนรหัสผ่าน
         document.querySelectorAll('[data-password-toggle]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const input = btn.previousElementSibling;
