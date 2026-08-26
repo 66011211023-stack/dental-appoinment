@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// 1. ระบบ Autoload แบบยืดหยุ่น (รองรับตัวพิมพ์เล็ก-ใหญ่บน Linux)
+// ระบบ Autoload ที่ปรับให้รองรับโครงสร้างไฟล์ตัวพิมพ์เล็ก (lowercase)
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';
     $baseDir = dirname(__DIR__) . '/app/';
@@ -14,12 +14,12 @@ spl_autoload_register(function ($class) {
     $relativeClass = substr($class, $len);
     $path = str_replace('\\', '/', $relativeClass) . '.php';
 
-    // รายการพาธที่อาจเป็นไปได้
+    // รายการพาธที่ค้นหา (รองรับทั้งตัวพิมพ์เล็กทั้งหมด และแบบ CamelCase)
     $possibleFiles = [
-        $baseDir . $path,
-        $baseDir . strtolower($path),
-        dirname(__DIR__) . '/app/Core/' . basename($path),
-        dirname(__DIR__) . '/app/core/' . basename($path)
+        $baseDir . strtolower($path),                           // เช่น app/core/auth.php
+        $baseDir . $path,                                       // เช่น app/Core/Auth.php
+        dirname(__DIR__) . '/app/core/' . strtolower(basename($path)),
+        dirname(__DIR__) . '/app/Core/' . basename($path)
     ];
 
     foreach ($possibleFiles as $file) {
@@ -33,16 +33,15 @@ spl_autoload_register(function ($class) {
 use App\Core\Auth;
 use App\Core\View;
 
-// ตรวจสอบความปลอดภัย: หาก Autoload ทำงานแล้วยังพบคลาสไม่สมบูรณ์
+// ตรวจสอบความปลอดภัย
 if (!class_exists('App\Core\Auth')) {
     die("<div style='padding:20px; background:#fee2e2; color:#991b1b; font-family:sans-serif; border-radius:8px;'>"
-        . "<h3>⚠️ ไม่พบไฟล์ Auth.php!</h3>"
-        . "<p>กรุณาตรวจสอบว่ามีไฟล์ <b>app/Core/Auth.php</b> ใน GitHub หรือไม่</p>"
-        . "<p>พาธที่ค้นหา: <code>" . htmlspecialchars(dirname(__DIR__) . '/app/Core/Auth.php') . "</code></p>"
+        . "<h3>⚠️ ไม่พบไฟล์ auth.php!</h3>"
+        . "<p>ระบบค้นหาในพาธ <code>app/core/auth.php</code> แล้วยังไม่พบครับ</p>"
         . "</div>");
 }
 
-// 2. ตรวจสอบการออกจากระบบ
+// เช็คการออกจากระบบ
 $page = $_GET['page'] ?? 'login';
 
 if ($page === 'logout') {
@@ -51,13 +50,13 @@ if ($page === 'logout') {
     exit;
 }
 
-// 3. เช็คสิทธิ์การเข้าถึง (ถ้ายังไม่ล็อกอิน ให้ดีดไปหน้า login)
+// เช็คสิทธิ์การเข้าถึง
 if (!Auth::check() && !in_array($page, ['login', 'register', 'forgot'], true)) {
     header('Location: /?page=login');
     exit;
 }
 
-// 4. จับคู่ชื่อหน้ากับไฟล์ View
+// Map ชื่อหน้าไปยัง Views
 $viewMap = [
     'login'          => 'auth/login',
     'register'       => 'auth/register',
