@@ -1,84 +1,61 @@
 <?php
+session_start();
+
+// Custom Autoloader สำหรับดึงคลาสในโฟลเดอร์ app/
+spl_autoload_register(function ($class) {
+    $prefix = 'App\\';
+    $baseDir = __DIR__ . '/app/';
+
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
+    }
+
+    $relativeClass = substr($class, $len);
+    $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
+
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
+
 use App\Core\Auth;
 use App\Core\Database;
+use App\Core\View;
 
-$u = Auth::user();
-$role = $u['role'];
+// โหลดการทำงานตามตัวแปร $_GET['page']
+$page = $_GET['page'] ?? 'login';
 
-// ดึงข้อมูลสถิติต่างๆ
-$today = (int)Database::query("SELECT COUNT(*) FROM appointments WHERE appointment_date=CURDATE() AND status<>'cancelled'")->fetchColumn();
-$completed = (int)Database::query("SELECT COUNT(*) FROM appointments WHERE appointment_date=CURDATE() AND status='completed'")->fetchColumn();
-$pending = (int)Database::query("SELECT COUNT(*) FROM appointments WHERE status='pending'")->fetchColumn();
-$revenue = (float)Database::query('SELECT COALESCE(SUM(t.cost),0) FROM treatments t JOIN appointments a ON a.id=t.appointment_id WHERE a.appointment_date=CURDATE()')->fetchColumn();
-
-// ดึงรายการนัดหมายล่าสุดจากฐานข้อมูล (แก้ไขจุดที่ค้างไว้)
-$appointments = Database::query("
-    SELECT a.*, p.full_name AS patient_name, u.full_name AS dentist_name 
-    FROM appointments a 
-    JOIN patients p ON p.id = a.patient_id 
-    LEFT JOIN dentists d ON d.id = a.dentist_id 
-    LEFT JOIN users u ON u.id = d.user_id 
-    ORDER BY a.appointment_date DESC, a.appointment_time DESC 
-    LIMIT 5
-")->fetchAll();
-
-$rows = array_map(fn($a) => [
-    substr($a['appointment_time'], 0, 5),
-    $a['patient_name'],
-    $a['dentist_name'] ?? '-',
-    $a['service'],
-    ['pending' => 'รออนุมัติ', 'approved' => 'ยืนยันแล้ว', 'completed' => 'เสร็จสิ้น', 'cancelled' => 'ยกเลิก'][$a['status']] ?? $a['status']
-], $appointments);
-
-page_header('สวัสดี ' . $u['full_name'], 'ภาพรวมข้อมูลล่าสุดจากฐานข้อมูล'); 
-?>
-
-<div class="stats-grid">
-<?php
-if ($role === 'patient') {
-    $pid = (int)Database::query('SELECT id FROM patients WHERE user_id=?', [$u['id']])->fetchColumn();
-    $future = $pid ? (int)Database::query("SELECT COUNT(*) FROM appointments WHERE patient_id=? AND appointment_date>=CURDATE() AND status<>'cancelled'", [$pid])->fetchColumn() : 0;
-    $history = $pid ? (int)Database::query('SELECT COUNT(*) FROM treatments t JOIN appointments a ON a.id=t.appointment_id WHERE a.patient_id=?', [$pid])->fetchColumn() : 0;
-    $notice = (int)Database::query('SELECT COUNT(*) FROM notifications WHERE user_id=? AND is_read=0', [$u['id']])->fetchColumn();
-    
-    stat_card('◷', (string)$future, 'นัดหมายที่กำลังจะถึง', 'รายการ');
-    stat_card('♡', (string)$history, 'ประวัติการรักษา', 'รายการ', 'purple');
-    stat_card('♢', (string)$notice, 'การแจ้งเตือนใหม่', 'รายการ', 'orange');
-} elseif ($role === 'dentist') {
-    $did = (int)Database::query('SELECT id FROM dentists WHERE user_id=?', [$u['id']])->fetchColumn();
-    $mine = (int)Database::query('SELECT COUNT(*) FROM appointments WHERE dentist_id=? AND appointment_date=CURDATE()', [$did])->fetchColumn();
-    $month = (int)Database::query('SELECT COUNT(*) FROM appointments WHERE dentist_id=? AND YEAR(appointment_date)=YEAR(CURDATE()) AND MONTH(appointment_date)=MONTH(CURDATE())', [$did])->fetchColumn();
-    
-    stat_card('◷', (string)$mine, 'ผู้ป่วยวันนี้', 'รายการ');
-    stat_card('✓', (string)$completed, 'รักษาแล้ววันนี้', 'รายการ', 'green');
-    stat_card('↗', (string)$month, 'บริการเดือนนี้', 'รายการ', 'purple');
-} else {
-    stat_card('◷', (string)$today, 'นัดหมายวันนี้', 'รายการ');
-    stat_card('✓', (string)$completed, 'รักษาแล้ว', 'รายการ', 'green');
-    stat_card('⌛', (string)$pending, 'รออนุมัติ', 'รายการ', 'orange');
-    stat_card('฿', number_format($revenue, 2), 'รายรับวันนี้', 'บาท', 'purple');
+if ($page === 'logout') {
+    Auth::logout();
+    header('Location: /?page=login');
+    exit;
 }
-?>
-</div>
 
-<?php if ($role === 'patient'): ?>
-<section class="panel">
-    <div class="quick-grid patient-quick">
-        <a href="/?page=booking"><span>＋</span>จองคิว</a>
-        <a href="/?page=appointments"><span>◷</span>นัดหมาย</a>
-        <a href="/?page=history"><span>♡</span>ประวัติรักษา</a>
-        <a href="/?page=profile"><span>♙</span>ข้อมูลส่วนตัว</a>
-    </div>
-</section>
-<?php else: ?>
-<section class="panel">
-    <div class="panel-header">
-        <div>
-            <h3>นัดหมายล่าสุด</h3>
-            <p>เรียงตามวันและเวลา</p>
-        </div>
-        <a href="/?page=appointments">ดูทั้งหมด →</a>
-    </div>
-    <?php data_table(['เวลา', 'ผู้ป่วย', 'ทันตแพทย์', 'บริการ', 'สถานะ'], $rows, 4); ?>
-</section>
-<?php endif; ?>
+if (!Auth::check() && !in_array($page, ['login', 'register', 'forgot'], true)) {
+    header('Location: /?page=login');
+    exit;
+}
+
+// Map หน้าเพจไปยังไฟล์ Views
+$viewMap = [
+    'login'          => 'auth/login',
+    'register'       => 'auth/register',
+    'dashboard'      => 'dashboard/index',
+    'appointments'   => 'modules/appointments',
+    'booking'        => 'modules/booking',
+    'history'        => 'modules/history',
+    'materials'      => 'modules/materials',
+    'material-usage' => 'modules/material-usage',
+    'notifications'  => 'modules/notifications',
+    'patients'       => 'modules/patients',
+    'profile'        => 'modules/profile',
+    'reports'        => 'modules/reports',
+    'rights'         => 'modules/rights',
+    'schedule'       => 'modules/schedule',
+    'service-stats'  => 'modules/service-stats',
+    'users'          => 'modules/users',
+];
+
+$view = $viewMap[$page] ?? 'auth/login';
+View::render($view);
