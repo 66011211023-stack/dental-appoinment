@@ -26,7 +26,7 @@ $eyeIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9
             </div>
             <?php if ($error): ?><p class="login-error"><?= htmlspecialchars((string)$error) ?></p><?php endif; ?>
             
-            <form method="post" action="/?page=register" class="form-grid">
+            <form method="post" action="/?page=register" class="form-grid" autocomplete="off">
                 <?= Csrf::field() ?>
                 
                 <div class="form-row-2">
@@ -46,23 +46,23 @@ $eyeIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9
                     <label>รหัสผ่าน
                         <span class="password-input-wrap">
                             <input name="password" required type="password" minlength="4" placeholder="กรอกรหัสผ่าน">
-                            <button type="button" class="password-toggle" data-password-toggle aria-label="แสดงรหัสผ่าน"><?=$eyeIcon?></button>
+                            <button type="button" class="password-toggle" data-password-toggle aria-label="แสดงรหัสผ่าน" title="แสดงรหัสผ่าน"><?=$eyeIcon?></button>
                         </span>
                     </label>
                     <label>ยืนยันรหัสผ่าน
                         <span class="password-input-wrap">
                             <input name="password_confirmation" required type="password" minlength="4" placeholder="กรอกรหัสผ่านอีกครั้ง">
-                            <button type="button" class="password-toggle" data-password-toggle aria-label="แสดงรหัสผ่าน"><?=$eyeIcon?></button>
+                            <button type="button" class="password-toggle" data-password-toggle aria-label="แสดงรหัสผ่าน" title="แสดงรหัสผ่าน"><?=$eyeIcon?></button>
                         </span>
                     </label>
                 </div>
 
                 <div class="form-row-2">
                     <label>เลขบัตรประชาชน
-                        <input name="national_id" maxlength="13" placeholder="เลข 13 หลัก">
+                        <input name="national_id" maxlength="13" placeholder="1459901057790">
                     </label>
                     <label>วันเกิด
-                        <input type="date" name="birth_date" placeholder="วว/ดด/ปปปป">
+                        <input type="date" name="birth_date">
                     </label>
                 </div>
 
@@ -72,22 +72,20 @@ $eyeIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9
                     </label>
                     <label>สิทธิ์การรักษา
                         <select name="coverage_type">
-                            <option value="">-- เลือกสิทธิ์ --</option>
                             <option value="จ่ายตรง/เงินสด">จ่ายตรง / เงินสด</option>
+                            <option value="บัตรทอง / 30 บาท">บัตรทอง / 30 บาท</option>
                             <option value="ประกันสังคม">ประกันสังคม</option>
-                            <option value="บัตรทอง">บัตรทอง / 30 บาท</option>
-                            <option value="ข้าราชการ">สวัสดิการข้าราชการ</option>
-                            <option value="ประกันสุขภาพเอกชน">ประกันสุขภาพเอกชน</option>
+                            <option value="สวัสดิการข้าราชการ">สวัสดิการข้าราชการ</option>
                         </select>
                     </label>
                 </div>
 
                 <label class="full-width">ที่อยู่
-                    <textarea name="address" rows="2" placeholder="กรอกที่อยู่ปัจจุบัน"></textarea>
+                    <textarea name="address" rows="2" placeholder="เลขที่... ม.... ต.... อ.... จ...."></textarea>
                 </label>
                 
                 <button class="primary-button full-width" type="submit">สมัครสมาชิก <span>→</span></button>
-                <p class="auth-register-link full-width" style="text-align:center; margin-top:12px;">มีบัญชีผู้ใช้แล้ว? <a href="/?page=login">เข้าสู่ระบบ</a></p>
+                <p class="auth-register-link full-width" style="text-align:center;">มีบัญชีผู้ใช้แล้ว? <a href="/?page=login">เข้าสู่ระบบ</a></p>
             </form>
         </div>
     </section>
