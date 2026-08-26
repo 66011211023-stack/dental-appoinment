@@ -1,10 +1,9 @@
 <?php
 session_start();
 
-// 1. ระบบ Autoload (ถอยกลับ 1 ชั้นออกไปหาโฟลเดอร์ app/)
+// 1. ระบบ Autoload แบบยืดหยุ่น (รองรับตัวพิมพ์เล็ก-ใหญ่บน Linux)
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';
-    // ถอยจาก /public ไประดับ Root เพื่อเข้า /app
     $baseDir = dirname(__DIR__) . '/app/';
 
     $len = strlen($prefix);
@@ -13,18 +12,37 @@ spl_autoload_register(function ($class) {
     }
 
     $relativeClass = substr($class, $len);
-    $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
+    $path = str_replace('\\', '/', $relativeClass) . '.php';
 
-    if (file_exists($file)) {
-        require_once $file;
+    // รายการพาธที่อาจเป็นไปได้
+    $possibleFiles = [
+        $baseDir . $path,
+        $baseDir . strtolower($path),
+        dirname(__DIR__) . '/app/Core/' . basename($path),
+        dirname(__DIR__) . '/app/core/' . basename($path)
+    ];
+
+    foreach ($possibleFiles as $file) {
+        if (file_exists($file)) {
+            require_once $file;
+            return;
+        }
     }
 });
 
-// 2. เรียกใช้งาน Core Class
 use App\Core\Auth;
 use App\Core\View;
 
-// 3. ตรวจสอบการออกจากระบบ
+// ตรวจสอบความปลอดภัย: หาก Autoload ทำงานแล้วยังพบคลาสไม่สมบูรณ์
+if (!class_exists('App\Core\Auth')) {
+    die("<div style='padding:20px; background:#fee2e2; color:#991b1b; font-family:sans-serif; border-radius:8px;'>"
+        . "<h3>⚠️ ไม่พบไฟล์ Auth.php!</h3>"
+        . "<p>กรุณาตรวจสอบว่ามีไฟล์ <b>app/Core/Auth.php</b> ใน GitHub หรือไม่</p>"
+        . "<p>พาธที่ค้นหา: <code>" . htmlspecialchars(dirname(__DIR__) . '/app/Core/Auth.php') . "</code></p>"
+        . "</div>");
+}
+
+// 2. ตรวจสอบการออกจากระบบ
 $page = $_GET['page'] ?? 'login';
 
 if ($page === 'logout') {
@@ -33,13 +51,13 @@ if ($page === 'logout') {
     exit;
 }
 
-// 4. เช็คสิทธิ์การเข้าถึง (ถ้ายังไม่ล็อกอิน ให้ดีดไปหน้า login)
+// 3. เช็คสิทธิ์การเข้าถึง (ถ้ายังไม่ล็อกอิน ให้ดีดไปหน้า login)
 if (!Auth::check() && !in_array($page, ['login', 'register', 'forgot'], true)) {
     header('Location: /?page=login');
     exit;
 }
 
-// 5. จับคู่ชื่อหน้ากับไฟล์ View
+// 4. จับคู่ชื่อหน้ากับไฟล์ View
 $viewMap = [
     'login'          => 'auth/login',
     'register'       => 'auth/register',
