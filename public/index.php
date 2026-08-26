@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// 1. Autoloader
+// 1. ระบบ Autoload สำหรับค้นหา Class จาก app/Core ทั้งหมด
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';
     $len = strlen($prefix);
@@ -36,7 +36,7 @@ use App\Core\View;
 
 $page = $_GET['page'] ?? 'login';
 
-// 2. จัดการการส่งฟอร์ม (POST Request)
+// 2. จัดการเมื่อมีการกดส่งฟอร์ม (POST Request)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($page === 'login') {
         $action = $_POST['action'] ?? 'login';
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// 3. เช็คการออกจากระบบ
+// 3. จัดการการออกจากระบบ
 if ($page === 'logout') {
     Auth::logout();
     header('Location: /?page=login');
