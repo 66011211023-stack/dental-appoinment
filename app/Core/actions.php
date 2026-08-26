@@ -45,6 +45,7 @@ class Actions
             exit;
         }
 
+        // ตรวจสอบอีเมลซ้ำ
         $exist = Database::query("SELECT id FROM users WHERE username = ? OR email = ?", [$email, $email])->fetch();
         if ($exist) {
             $_SESSION['error'] = 'อีเมลนี้ถูกใช้งานในระบบแล้ว';
@@ -52,7 +53,7 @@ class Actions
             exit;
         }
 
-        // 1. เพิ่ม User
+        // 1. บันทึกบัญชีผู้ใช้
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
         Database::query(
             "INSERT INTO users (username, email, password, full_name, role) VALUES (?, ?, ?, ?, 'patient')",
@@ -60,16 +61,16 @@ class Actions
         );
         $userId = Database::lastInsertId();
 
-        // 2. สุ่มรหัส HN (เช่น HN69001)
+        // 2. สร้างหมายเลข HN
         $hn = 'HN' . rand(10000, 99999);
 
-        // 3. บันทึกลงตาราง patients
+        // 3. บันทึกลงตารางผู้ป่วย (patients)
         Database::query(
             "INSERT INTO patients (user_id, hn, full_name, phone, national_id, birth_date, coverage_type, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             [$userId, $hn, $fullName, $phone, $nationalId, $birthDate, $coverageType, $address]
         );
 
-        // Auto Login
+        // เข้าสู่ระบบอัตโนมัติ และ Redirect ไปแดชบอร์ด
         Auth::login($email, $password);
         header('Location: /?page=dashboard');
         exit;
