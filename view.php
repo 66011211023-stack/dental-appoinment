@@ -2,28 +2,27 @@
 
 namespace App\Core;
 
-final class View
+final class view
 {
     public static function render(string $view, array $data = []): void
     {
         extract($data, EXTR_SKIP);
 
-        // หา Root Directory ของ htdocs หรือโฟลเดอร์ปัจจุบัน
-        $docRoot = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/');
-        if (!$docRoot || !is_dir($docRoot)) {
-            $docRoot = __DIR__;
-        }
+        // หา Root Directory ของโครงการ
+        $rootDir = dirname(__DIR__, 2);
 
-        // ค้นหาโฟลเดอร์ Views ทั้งหมดที่เป็นไปได้ (ทั้งตัวพิมพ์เล็กและใหญ่)
-        $possibleViewsDirs = [
-            $docRoot . '/Views',
-            $docRoot . '/views',
-            __DIR__ . '/Views',
-            __DIR__ . '/views',
+        // ค้นหาโฟลเดอร์ Views ในทุกตำแหน่งที่เป็นไปได้ (รวมถึง app/Views)
+        $possibleDirs = [
+            $rootDir . '/app/Views',
+            $rootDir . '/app/views',
+            $rootDir . '/Views',
+            $rootDir . '/views',
+            __DIR__ . '/../Views',
+            __DIR__ . '/../views',
         ];
 
         $baseViewsDir = null;
-        foreach ($possibleViewsDirs as $dir) {
+        foreach ($possibleDirs as $dir) {
             if (is_dir($dir)) {
                 $baseViewsDir = $dir;
                 break;
@@ -31,29 +30,26 @@ final class View
         }
 
         if (!$baseViewsDir) {
-            $baseViewsDir = $docRoot . '/Views';
+            $baseViewsDir = $rootDir . '/app/Views';
         }
 
-        // ค้นหาพาธไฟล์ย่อย (เช่น auth/login) แบบไม่สนตัวพิมพ์เล็ก-ใหญ่
+        // ค้นหาไฟล์ย่อย (เช่น auth/login)
         $parts = explode('/', $view);
         $fileName = array_pop($parts);
         $subDir = implode('/', $parts);
 
-        // ลองค้นหาโฟลเดอร์ย่อย (เช่น auth หรือ Auth)
         $targetDir = $baseViewsDir;
         if ($subDir !== '') {
             if (is_dir($baseViewsDir . '/' . $subDir)) {
                 $targetDir = $baseViewsDir . '/' . $subDir;
-            } elseif (is_dir($baseViewsDir . '/' . ucfirst($subDir))) {
-                $targetDir = $baseViewsDir . '/' . ucfirst($subDir);
             } elseif (is_dir($baseViewsDir . '/' . strtolower($subDir))) {
                 $targetDir = $baseViewsDir . '/' . strtolower($subDir);
-            } else {
-                $targetDir = $baseViewsDir . '/' . $subDir;
+            } elseif (is_dir($baseViewsDir . '/' . ucfirst($subDir))) {
+                $targetDir = $baseViewsDir . '/' . ucfirst($subDir);
             }
         }
 
-        // ลองค้นหาตัวไฟล์ (เช่น login.php, Login.php)
+        // ค้นหาตัวไฟล์ login.php หรือ Login.php
         $possibleFiles = [
             $targetDir . '/' . $fileName . '.php',
             $targetDir . '/' . strtolower($fileName) . '.php',
@@ -71,12 +67,8 @@ final class View
         if (!$viewFile) {
             echo "<div style='background:#fee2e2; color:#991b1b; padding:20px; font-family:sans-serif; border-radius:8px;'>";
             echo "<h3>⚠️ View File Not Found!</h3>";
-            echo "<p>ไม่พบไฟล์หน้าเว็บที่: <code>" . htmlspecialchars($targetDir . '/' . $fileName . '.php') . "</code></p>";
-            echo "<p><b>สิ่งที่ต้องเช็กใน File Manager:</b></p>";
-            echo "<ul>";
-            echo "<li>เช็กโฟลเดอร์ <b>Views</b> (หรือ <b>views</b>) ว่าด้านในมีโฟลเดอร์ <b>auth</b> อยู่หรือไม่</li>";
-            echo "<li>เช็กด้านในโฟลเดอร์ <b>auth</b> ว่ามีไฟล์ <b>login.php</b> หรือไม่</li>";
-            echo "</ul>";
+            echo "<p>ไม่พบไฟล์ที่: <code>" . htmlspecialchars($targetDir . '/' . $fileName . '.php') . "</code></p>";
+            echo "<p><b>พาธ Views ปัจจุบัน:</b> " . htmlspecialchars($baseViewsDir) . "</p>";
             echo "</div>";
             return;
         }
