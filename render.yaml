@@ -1,11 +1,9 @@
 services:
   - type: web
     name: dental-appointment
-    env: php
+    runtime: docker
     region: singapore
     plan: free
-    buildCommand: ""
-    startCommand: apache2-foreground
     healthCheckPath: /health.php
     envVars:
       - key: APP_ENV
