@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: dental-appointment
+    env: php
+    region: singapore
+    plan: free
+    buildCommand: ""
+    startCommand: apache2-foreground
+    healthCheckPath: /health.php
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "23192"
+      - key: DB_NAME
+        value: defaultdb
+      - key: DB_USER
+        value: avnadmin
+      - key: DB_PASS
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
